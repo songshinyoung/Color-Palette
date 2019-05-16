@@ -27,9 +27,9 @@ void __fastcall DeleteLastSlash(AnsiString &sMsg)
 
 int __fastcall DivideByIndicator(AnsiString sSrc, TStringList * sList, char cIndicator)
 {
-    int nDivideCnt = 0; // Divide Count
-    int nSrcLen = 0;    // Source String Lenght
-    int nTmpCnt = 0;
+    int nDivideCnt; // Divide Count
+    int nSrcLen;    // Source String Lenght
+    int nTmpCnt;
     char temp[500];
 
     AnsiString sBuf;
@@ -199,7 +199,7 @@ TStringList * MFileManager::GetSectionList()
         LeaveCriticalSection(&m_Sync);
     }
 
-    int nSectionCount = 0;
+    //int nSectionCount = 0;
     int nDigitCount   = 0;
     char cSectionTemp[1000];
     ZeroMemory(cSectionTemp, sizeof(cSectionTemp));
@@ -211,7 +211,7 @@ TStringList * MFileManager::GetSectionList()
             }
             else {
                 if(m_pSectionList) m_pSectionList->Add(cSectionTemp);
-                nSectionCount += 1;
+                //nSectionCount += 1;
 
                 ZeroMemory(cSectionTemp, sizeof(cSectionTemp));
                 nDigitCount = 0;
@@ -249,7 +249,7 @@ TStringList *  MFileManager::GetKeyList(AnsiString strSection)
         return m_pKeyList;
     }
 
-    int nSectionCount = 0;
+    //int nSectionCount = 0;
     int nDigitCount   = 0;
     char cSectionTemp[1000];
     ZeroMemory(cSectionTemp, sizeof(cSectionTemp));
@@ -263,7 +263,7 @@ TStringList *  MFileManager::GetKeyList(AnsiString strSection)
             }
             else {
                 if(m_pKeyList) m_pKeyList->Add(cSectionTemp);
-                nSectionCount += 1;
+                //nSectionCount += 1;
 
                 ZeroMemory(cSectionTemp, sizeof(cSectionTemp));
                 nDigitCount = 0;
@@ -742,7 +742,7 @@ int    MFileManager::Get2xArrayValuePlus(AnsiString strSection, int iRow, int iC
 
         strResult = strResult.Trim();
 
-        iEnd = 0;
+        //iEnd = 0;
         for (ix = 0; ix < iCol; ix++)
         {
             iEnd = strResult.AnsiPos(',');
@@ -814,7 +814,7 @@ int    MFileManager::Get2xArrayValuePlus(AnsiString strSection, int iRow, int iC
 
         strResult = strResult.Trim();
 
-        iEnd = 0;
+        //iEnd = 0;
         for (ix = 0; ix < iCol; ix++)
         {
             iEnd = strResult.AnsiPos(',');
@@ -879,7 +879,7 @@ int    MFileManager::Get2xArrayValuePlus(AnsiString strSection, int iRow, int iC
         }
 
         strResult = strResult.Trim();
-        iEnd = 0;
+//        iEnd = 0;
         for (ix = 0; ix < iCol; ix++)
         {
             iEnd = strResult.AnsiPos(',');
@@ -942,7 +942,7 @@ int    MFileManager::Get2xArrayValuePlus(AnsiString strSection, int iRow, int iC
         }
 
         strResult = strResult.Trim();
-        iEnd = 0;
+//        iEnd = 0;
         for (ix = 0; ix < iCol; ix++)
         {
             iEnd = strResult.AnsiPos(',');
@@ -970,7 +970,7 @@ int    MFileManager::Set2xArrayValuePlus(AnsiString strSection, int iRow, int iC
 {
     AnsiString    strItem, strTmp, strResult;
     int ix, iy;
-    int nColor = 0;
+    int nColor;
 
     for (iy = 0; iy < iRow; iy++)
     {
@@ -994,7 +994,7 @@ int    MFileManager::Get2xArrayValuePlus(AnsiString strSection, int iRow, int iC
     AnsiString    strItem, strTmp, strResult;
     int ix, iy;
     int iEnd;
-    int nColor = 0;
+    int nColor;
 
     for (iy = 0; iy < iRow; iy++)
     {
@@ -1016,7 +1016,7 @@ int    MFileManager::Get2xArrayValuePlus(AnsiString strSection, int iRow, int iC
 
         strResult = strResult.Trim();
 
-        iEnd = 0;
+//        iEnd = 0;
         for (ix = 0; ix < iCol; ix++)
         {
             iEnd = strResult.AnsiPos(',');
@@ -1042,7 +1042,7 @@ int    MFileManager::Set2xArrayValuePlus(AnsiString strSection, int iRow, int iC
 {
     AnsiString    strItem, strTmp, strResult;
     int ix, iy;
-    int nColor = 0;
+    int nColor;
 
     for (iy = 0; iy < iRow; iy++)
     {
@@ -1067,7 +1067,7 @@ int    MFileManager::Get2xArrayValuePlus(AnsiString strSection, int iRow, int iC
     AnsiString    strItem, strTmp, strResult;
     int ix, iy;
     int iEnd;
-    int nColor = 0;
+    int nColor;
 
     for (iy = 0; iy < iRow; iy++)
     {
@@ -1092,7 +1092,7 @@ int    MFileManager::Get2xArrayValuePlus(AnsiString strSection, int iRow, int iC
 
         strResult = strResult.Trim();
 
-        iEnd = 0;
+//        iEnd = 0;
         for (ix = 0; ix < iCol; ix++)
         {
             iEnd = strResult.AnsiPos(',');
@@ -1668,7 +1668,7 @@ int    MFileManager::Set1xArrayValuePlus(AnsiString strSection, AnsiString strKe
 {
     AnsiString    strTmp, strResult;
     int ix;
-    int nColor = 0;
+    int nColor;
 
     strResult = "";
     for (ix = 0; ix < iXNum; ix++)
@@ -1688,7 +1688,7 @@ int    MFileManager::Get1xArrayValuePlus(AnsiString strSection, AnsiString strKe
     AnsiString    strTmp, strResult;
     int ix;
     int iEnd;
-    int nColor = 0;
+    int nColor;
 
     if(GetValue(strSection, strKey, &strResult) == false) {
         strResult = "";
