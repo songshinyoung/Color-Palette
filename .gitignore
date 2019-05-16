@@ -1,11 +1,9 @@
-# Prerequisites
-*.d
-
 # Compiled Object files
 *.slo
 *.lo
 *.o
 *.obj
+*.bak
 
 # Precompiled Headers
 *.gch
@@ -14,7 +12,7 @@
 # Compiled Dynamic libraries
 *.so
 *.dylib
-*.dll
+
 
 # Fortran module files
 *.mod
@@ -24,9 +22,44 @@
 *.lai
 *.la
 *.a
-*.lib
+
 
 # Executables
 *.exe
 *.out
 *.app
+
+# Logfile
+*.log
+*.lot
+
+# Ignore folder
+__history/
+Win32/
+Logs/
+Logs by LOT
+.svn/
+Debug/
+Release/
+Ini_Backup/
+SoftResetData/
+Print/
+DataBase/
+
+# Ignore file
+PLASMA2.ilc
+PLASMA2.ild
+PLASMA2.ilf
+PLASMA2.ils
+*.ldb
+*.local
+*.~dsk
+*.tds
+*.vlb
+*.mdb
+*.map
+*.zip
+*.ilc
+*.ild
+*.ilf
+*.ils
