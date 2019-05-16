@@ -1,7 +1,7 @@
 object Form1: TForm1
   Left = 0
   Top = 0
-  Caption = 'Named Color'
+  Caption = 'Color Palette'
   ClientHeight = 581
   ClientWidth = 1067
   Color = clBtnFace
@@ -41,7 +41,6 @@ object Form1: TForm1
     OnClick = StringGrid1Click
     OnDrawCell = StringGrid1DrawCell
     OnSelectCell = StringGrid1SelectCell
-    ExplicitHeight = 542
     ColWidths = (
       50
       178
@@ -60,9 +59,6 @@ object Form1: TForm1
     ParentBackground = False
     ShowCaption = False
     TabOrder = 1
-    ExplicitLeft = 401
-    ExplicitWidth = 701
-    ExplicitHeight = 542
     object AZFlowShape_Color: TAZFlowShape
       Left = 0
       Top = 0
@@ -102,8 +98,6 @@ object Form1: TForm1
       Caption = 'Panel2'
       ShowCaption = False
       TabOrder = 0
-      ExplicitTop = 405
-      ExplicitWidth = 701
       object Label1: TLabel
         Left = 48
         Top = 115
@@ -162,8 +156,6 @@ object Form1: TForm1
     Caption = 'Panel3'
     ShowCaption = False
     TabOrder = 2
-    ExplicitLeft = 800
-    ExplicitHeight = 542
     object Label_Pixel_Y: TLabel
       Left = 72
       Top = 276
@@ -301,7 +293,7 @@ object Form1: TForm1
       Left = 135
       Top = 389
       Width = 66
-      Height = 23
+      Height = 21
       TabOrder = 8
       Text = '0'
     end
@@ -310,7 +302,7 @@ object Form1: TForm1
       Left = 135
       Top = 419
       Width = 66
-      Height = 23
+      Height = 21
       TabOrder = 9
       Text = '0'
     end
