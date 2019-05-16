@@ -6,7 +6,7 @@
         <AppType>Application</AppType>
         <MainSource>Color Sample.cpp</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Release</Config>
+        <Config Condition="'$(Config)'==''">Debug</Config>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>1</TargetedPlatforms>
     </PropertyGroup>
@@ -64,7 +64,7 @@
         <DynamicRTL>true</DynamicRTL>
         <UsePackages>true</UsePackages>
         <IntermediateOutputDir>.\$(Platform)\$(Config)</IntermediateOutputDir>
-        <FinalOutputDir>.\$(Platform)\$(Config)</FinalOutputDir>
+        <FinalOutputDir>.</FinalOutputDir>
         <BCC_wpar>false</BCC_wpar>
         <BCC_OptimizeForSpeed>true</BCC_OptimizeForSpeed>
         <BCC_ExtendedErrorInfo>true</BCC_ExtendedErrorInfo>
@@ -107,6 +107,9 @@
         <ILINK_TranslatedLibraryPath>$(BDSLIB)\$(PLATFORM)\debug\$(LANGDIR);$(ILINK_TranslatedLibraryPath)</ILINK_TranslatedLibraryPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+        <VerInfo_Locale>1033</VerInfo_Locale>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <_TCHARMapping>char</_TCHARMapping>
         <LinkPackageImports>rtl.bpi;vcl.bpi;TAZPanel.bpi</LinkPackageImports>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
@@ -131,10 +134,14 @@
             <BuildOrder>1</BuildOrder>
         </PCHCompile>
         <CppCompile Include="Main.cpp">
-            <Form>Form1</Form>
+            <Form>fmMain</Form>
             <FormType>dfm</FormType>
             <DependentOn>Main.h</DependentOn>
             <BuildOrder>2</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="MFileManager.cpp">
+            <DependentOn>MFileManager.h</DependentOn>
+            <BuildOrder>4</BuildOrder>
         </CppCompile>
         <None Include="rgb_hsi.h">
             <BuildOrder>3</BuildOrder>

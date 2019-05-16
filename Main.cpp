@@ -17,18 +17,22 @@
 #pragma package(smart_init)
 #pragma link "AZFlowShape"
 #pragma resource "*.dfm"
-TForm1 *Form1;
+TfmMain *fmMain;
 //---------------------------------------------------------------------------
 
-__fastcall TForm1::TForm1(TComponent* Owner)
+__fastcall TfmMain::TfmMain(TComponent* Owner)
     : TForm(Owner)
 {
+    m_pFileManager = new MFileManager("Config.ini");
+
+    m_nCartIndex = 0;
     nSelectColorIndex = 0;
 
-   m_bMouseDown = false;
-   m_nPixelMapX = 0;
-   m_nPixelMapY = 0;
-   m_nIntensity = 240;
+    m_bMouseDown = false;
+    m_nPixelMapX = 0;
+    m_nPixelMapY = 240;
+    m_nIntensity = 240;
+
 
     //----------------------------------
     // Color Map 그리기.
@@ -49,9 +53,22 @@ __fastcall TForm1::TForm1(TComponent* Owner)
             m_pBitmapPixelMap->Canvas->Pixels[H][S] = TColor(((int)dB) << 16  | ((int)dG) << 8 | ((int)dR));
         }
     }
+
+    m_pIntensityPixelMap = new TBitmap();
+    m_pIntensityPixelMap->Width  = 10;
+    m_pIntensityPixelMap->Height = 240;
     //----------------------------------
 
+    Image_Intensity->ControlStyle = Image_Intensity->ControlStyle << csOpaque;
 
+
+    HSI_to_RGB(0, 0, 1, dR, dG, dB);
+    m_nRGB_R = dR;
+    m_nRGB_G = dG;
+    m_nRGB_B = dB;
+
+    m_nBGColor   = (m_nRGB_B << 16 | m_nRGB_G << 8 | m_nRGB_R);
+    m_nFontColor = 0x0;
 
     ZeroMemory(m_ColorIndex, sizeof(m_ColorIndex));
 
@@ -257,50 +274,16 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TForm1::FormDestroy(TObject *Sender)
+void __fastcall TfmMain::FormDestroy(TObject *Sender)
 {
-    if(m_pBitmapPixelMap) delete m_pBitmapPixelMap;
+    if(m_pBitmapPixelMap)   delete m_pBitmapPixelMap;
+    if(m_pIntensityPixelMap)delete m_pIntensityPixelMap;
+    if(m_pFileManager)      delete m_pFileManager;
 }
 
+
 //---------------------------------------------------------------------------
-void __fastcall TForm1::StringGrid1DrawCell(TObject *Sender, int ACol, int ARow, TRect &Rect,
-          TGridDrawState State)
-{
-    Rect.Left -= 4;
-// 셀 그리기
-    // 고정 셀은 버튼 모양으로
-    if(State.Contains(gdFixed)) {
-        StringGrid1->Canvas->Brush->Color = clBtnFace;
-        StringGrid1->Canvas->Font->Color = clWindowText;
-        StringGrid1->Canvas->FillRect(Rect);
-        Frame3D(StringGrid1->Canvas, Rect, clBtnHighlight, clBtnShadow, 1);
-    }
-//    // 선택된 셀은 하이라이트 색
-//    else if (State.Contains(gdSelected))
-//    {
-//        StringGrid1->Canvas->Brush->Color = clHighlight;
-//        StringGrid1->Canvas->Font->Color = clHighlightText;
-//        StringGrid1->Canvas->FillRect(Rect);
-//    }
-    // 나머지 셀은 기본 색으로
-    else
-    {
-        if(ACol == 2)                       StringGrid1->Canvas->Brush->Color = m_ColorIndex[ARow-1];
-        else if(State.Contains(gdSelected)) StringGrid1->Canvas->Brush->Color = clMenuHighlight;
-        else if(ARow <= 24)                 StringGrid1->Canvas->Brush->Color = StringGrid1->Color;
-        else if(ARow <= 54)                 StringGrid1->Canvas->Brush->Color = clWebBeige;
-        else                                StringGrid1->Canvas->Brush->Color = StringGrid1->Color;
-
-        StringGrid1->Canvas->Font->Color = StringGrid1->Font->Color;
-        StringGrid1->Canvas->FillRect(Rect);
-    }
-
-// 셀 내용(텍스트) 출력
-    StringGrid1->Canvas->TextRect(Rect, Rect.Left+2, Rect.Top + 3, StringGrid1->Cells[ACol][ARow]);
-
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::FormShow(TObject *Sender)
+void __fastcall TfmMain::FormShow(TObject *Sender)
 {
     StringGrid1->Cells[1][1] = "test";
 
@@ -527,11 +510,60 @@ void __fastcall TForm1::FormShow(TObject *Sender)
     Image1->Picture->Bitmap->Width  = 240;
     Image1->Picture->Bitmap->Height = 240;
 
+    Image_Intensity->Picture->Bitmap->Width  = 10;
+    Image_Intensity->Picture->Bitmap->Height = 240;
+
+    StringGrid_Cart->Cells[0][0] = "No.";
+    StringGrid_Cart->Cells[1][0] = "Title";
+    StringGrid_Cart->Cells[2][0] = "Name";
+    StringGrid_Cart->Cells[3][0] = "Value";
+
+    for(int row=1; row<StringGrid_Cart->RowCount; row++) {
+        StringGrid_Cart->Cells[0][row] = row;
+    }
+
     DisplayUpdatePixelMap(true);
     DisplayUpdate();
 }
+//---------------------------------------------------------------------------
+void __fastcall TfmMain::StringGrid1DrawCell(TObject *Sender, int ACol, int ARow, TRect &Rect,
+          TGridDrawState State)
+{
+    Rect.Left -= 4;
+// 셀 그리기
+    // 고정 셀은 버튼 모양으로
+    if(State.Contains(gdFixed)) {
+        StringGrid1->Canvas->Brush->Color = clBtnFace;
+        StringGrid1->Canvas->Font->Color = clWindowText;
+        StringGrid1->Canvas->FillRect(Rect);
+        Frame3D(StringGrid1->Canvas, Rect, clBtnHighlight, clBtnShadow, 1);
+    }
+//    // 선택된 셀은 하이라이트 색
+//    else if (State.Contains(gdSelected))
+//    {
+//        StringGrid1->Canvas->Brush->Color = clHighlight;
+//        StringGrid1->Canvas->Font->Color = clHighlightText;
+//        StringGrid1->Canvas->FillRect(Rect);
+//    }
+    // 나머지 셀은 기본 색으로
+    else
+    {
+        if(ACol == 2)                       StringGrid1->Canvas->Brush->Color = m_ColorIndex[ARow-1];
+        else if(State.Contains(gdSelected)) StringGrid1->Canvas->Brush->Color = clMenuHighlight;
+        else if(ARow <= 24)                 StringGrid1->Canvas->Brush->Color = StringGrid1->Color;
+        else if(ARow <= 54)                 StringGrid1->Canvas->Brush->Color = clWebBeige;
+        else                                StringGrid1->Canvas->Brush->Color = StringGrid1->Color;
+
+        StringGrid1->Canvas->Font->Color = StringGrid1->Font->Color;
+        StringGrid1->Canvas->FillRect(Rect);
+    }
+
+// 셀 내용(텍스트) 출력
+    StringGrid1->Canvas->TextRect(Rect, Rect.Left+2, Rect.Top + 3, StringGrid1->Cells[ACol][ARow]);
+
+}
 //----------------------------------------------------------------------
-void __fastcall TForm1::AZFlowShape_ColorClick(TObject *Sender, int Row, int Col)
+void __fastcall TfmMain::AZFlowShape_ColorClick(TObject *Sender, int Row, int Col)
 {
     int nIdx = Row * AZFlowShape_Color->AZ_Col + Col;
 
@@ -542,10 +574,12 @@ void __fastcall TForm1::AZFlowShape_ColorClick(TObject *Sender, int Row, int Col
     StringGrid1->Row = nSelectColorIndex + 1;
 
     SetPixelMapBySelectColor(m_ColorIndex[nSelectColorIndex]);
+
+    StringGrid1->SetFocus();
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TForm1::StringGrid1Click(TObject *Sender)
+void __fastcall TfmMain::StringGrid1Click(TObject *Sender)
 {
     nSelectColorIndex = StringGrid1->Selection.Top - 1;
 
@@ -558,7 +592,23 @@ void __fastcall TForm1::StringGrid1Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TForm1::DisplayUpdate()
+void __fastcall TfmMain::Edit_ColorKeyPress(TObject *Sender, System::WideChar &Key)
+{
+    if(Key == VK_RETURN) {
+        String sColor = Edit_Color->Text.Trim();
+
+        for(int i=1; i<StringGrid1->RowCount; i++) {
+            if(StringGrid1->Cells[1][i] == sColor) {
+                nSelectColorIndex = i - 1;
+                SetPixelMapBySelectColor(m_ColorIndex[nSelectColorIndex]);
+                StringGrid1->Row = i;
+            }
+        }
+    }
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TfmMain::DisplayUpdate()
 {
     for(int y=0; y<AZFlowShape_Color->AZ_Row; y++) {
         for(int x=0; x<AZFlowShape_Color->AZ_Col; x++) {
@@ -581,6 +631,11 @@ void __fastcall TForm1::DisplayUpdate()
         Edit_Color->Text = "clBlack";
     }
 
+    TNotifyEvent OnClickEventTemp = StringGrid1->OnClick;
+    StringGrid1->OnClick = NULL;
+    StringGrid1->Row = nSelectColorIndex + 1;
+    StringGrid1->OnClick = OnClickEventTemp;
+
     if(nSelectColorIndex < 24) {
         Label_ColorType->Caption = "Normal Colors";
     }
@@ -591,9 +646,13 @@ void __fastcall TForm1::DisplayUpdate()
         Label_ColorType->Caption = "Web Colors";
     }
 
+    if(m_pFileManager) {
+        StatusBar1->Panels->Items[1]->Text = m_pFileManager->GetFileFullPathName();
+    }
+
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::DisplayUpdatePixelMap(bool bFirst)
+void __fastcall TfmMain::DisplayUpdatePixelMap(bool bFirst)
 {
     double dH=0, dS=0, dI=0;
     double dR=0, dG=0, dB=0;
@@ -602,13 +661,29 @@ void __fastcall TForm1::DisplayUpdatePixelMap(bool bFirst)
         Image1->Picture->Bitmap->Assign(m_pBitmapPixelMap);
     }
 
+    // 명도 Trackbar 그리기
+    //m_pIntensityPixelMap->Canvas->Brush->Style = bsSolid;
+    for(int i=0; i<24; i++) {
+        HSI_to_RGB((double)m_nPixelMapX/240.0, (double)(240-m_nPixelMapY)/240.0, (double)(i*10)/240.0, dR, dG, dB);
+        m_pIntensityPixelMap->Canvas->Pen->Color   = TColor(((int)dB) << 16  | ((int)dG) << 8 | ((int)dR));
+        m_pIntensityPixelMap->Canvas->Brush->Color = m_pIntensityPixelMap->Canvas->Pen->Color;
+        m_pIntensityPixelMap->Canvas->FillRect(Rect(0, i*10, m_pIntensityPixelMap->Width, i*10 + 10));
+        //Image_Intensity->Canvas->MoveTo(0, i);
+        //Image_Intensity->Canvas->LineTo(Image_Intensity->Width, i);
+    }
+
+    //m_pIntensityPixelMap->Canvas->Pen->Color   = clGray;
+    //m_pIntensityPixelMap->Canvas->Brush->Style = bsClear;
+    //m_pIntensityPixelMap->Canvas->Rectangle(0,0,m_pIntensityPixelMap->Width, m_pIntensityPixelMap->Height);
+    Image_Intensity->Picture->Bitmap->Assign(m_pIntensityPixelMap);
+
     // 커서 그리기
     TCanvas * pCanvas = Image1->Picture->Bitmap->Canvas;
 
     if(m_bMouseDown == false) {
 
         pCanvas->Pen->Width = 1;
-        pCanvas->Pen->Color = clBlack;
+        pCanvas->Pen->Color = TColor((255-m_nRGB_B) << 16  | (255-m_nRGB_G) << 8 | (255-m_nRGB_R));
         pCanvas->MoveTo(m_nPixelMapX-2, m_nPixelMapY);
         pCanvas->LineTo(m_nPixelMapX-5, m_nPixelMapY);
         pCanvas->MoveTo(m_nPixelMapX+2,   m_nPixelMapY);
@@ -630,37 +705,68 @@ void __fastcall TForm1::DisplayUpdatePixelMap(bool bFirst)
     Label_Pixel_Y->Caption = "Y : " + IntToStr(m_nPixelMapY);
 
     // 현재 선택된 색상에서 명도를 추가하여 색상 표기
-    dH = (double)m_nPixelMapX/240.0;            // 색상
+    dH = (double)m_nPixelMapX / 240.0;          // 색상
     dS = (double)(240-m_nPixelMapY) / 240.0;    // 채도
-    dI = (double)(m_nIntensity) / 240.0;  // 명도
+    dI = (double)(m_nIntensity) / 240.0;        // 명도
 
-    HSI_to_RGB(dH, dS, dI, dR, dG, dB);
-    Panel_SelectPixelColor->Color = TColor(((int)dB) << 16  | ((int)dG) << 8 | ((int)dR));
+    //HSI_to_RGB(dH, dS, dI, dR, dG, dB);
+    //Panel_SelectPixelColor->Color = TColor(((int)dB) << 16  | ((int)dG) << 8 | ((int)dR));
+//    if(RadioButton_Type_BG->Checked) {
+//        Panel_SelectPixelColor->Color = TColor((m_nRGB_B) << 16  | (m_nRGB_G) << 8 | (m_nRGB_R));
+//    }
+//    else {
+//        Panel_SelectPixelColor->Font->Color = TColor((m_nRGB_B) << 16  | (m_nRGB_G) << 8 | (m_nRGB_R));
+//    }
+
+    Panel_SelectPixelColor->Color       = (TColor)m_nBGColor;
+    Panel_SelectPixelColor->Font->Color = (TColor)m_nFontColor;
+
+
+    Edit_Pixel_H->OnChange   = NULL;
+    Edit_Pixel_S->OnChange   = NULL;
+    Edit_Pixel_I->OnChange   = NULL;
+    Edit_Pixel_R->OnChange   = NULL;
+    Edit_Pixel_G->OnChange   = NULL;
+    Edit_Pixel_B->OnChange   = NULL;
+    Edit_CodeColor->OnChange = NULL;
+    Edit_CodeColor2->OnChange =NULL;
 
     Edit_Pixel_H->Text = m_nPixelMapX;
     Edit_Pixel_S->Text = 240-m_nPixelMapY;
     Edit_Pixel_I->Text = m_nIntensity;
 
-    Edit_Pixel_R->Text = (int)dR;
-    Edit_Pixel_G->Text = (int)dG;
-    Edit_Pixel_B->Text = (int)dB;
+    Edit_Pixel_R->Text = (int)m_nRGB_R;
+    Edit_Pixel_G->Text = (int)m_nRGB_G;
+    Edit_Pixel_B->Text = (int)m_nRGB_B;
 
     AnsiString sMsg;
-    sMsg.printf("0x%02X%02X%02X", (int)dB, (int)dG, (int)dR);
-    Edit_CodeColor->Text = sMsg;
-    sMsg.printf("$00%02X%02X%02X", (int)dB, (int)dG, (int)dR);
+
+    if(Edit_CodeColor->Focused() != true) {
+        sMsg.printf("0x%02X%02X%02X", (int)m_nRGB_B, (int)m_nRGB_G, (int)m_nRGB_R);
+        Edit_CodeColor->Text = sMsg;
+    }
+
+    sMsg.printf("$00%02X%02X%02X", (int)m_nRGB_B, (int)m_nRGB_G, (int)m_nRGB_R);
     Edit_CodeColor2->Text = sMsg;
 
+    Edit_Pixel_H->OnChange   = Edit_Pixel_HChange;
+    Edit_Pixel_S->OnChange   = Edit_Pixel_HChange;
+    Edit_Pixel_I->OnChange   = Edit_Pixel_HChange;
+    Edit_Pixel_R->OnChange   = Edit_Pixel_HChange;
+    Edit_Pixel_G->OnChange   = Edit_Pixel_HChange;
+    Edit_Pixel_B->OnChange   = Edit_Pixel_HChange;
+    Edit_CodeColor->OnChange = Edit_Pixel_HChange;
+    Edit_CodeColor2->OnChange =Edit_Pixel_HChange;
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::StringGrid1SelectCell(TObject *Sender, int ACol, int ARow,
+void __fastcall TfmMain::StringGrid1SelectCell(TObject *Sender, int ACol, int ARow,
           bool &CanSelect)
 {
 //
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TForm1::Button_CopyClick(TObject *Sender)
+void __fastcall TfmMain::Button_CopyClick(TObject *Sender)
 {
     TButton * pBtn = dynamic_cast<TButton *>(Sender);
 
@@ -687,19 +793,22 @@ void __fastcall TForm1::Button_CopyClick(TObject *Sender)
 //---------------------------------------------------------------------------
 
 
-
-void __fastcall TForm1::Image1MouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift,
+void __fastcall TfmMain::Image1MouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift,
           int X, int Y)
 {
+    if(Button != mbLeft) return;
+
     m_bMouseDown = true;
-    m_nPixelMapX = X;
-    m_nPixelMapY = Y;
+
+    SetColor_XYI(X, Y, m_nIntensity);
 
     DisplayUpdatePixelMap(true);
+
+    StringGrid1->SetFocus();
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TForm1::Image1MouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift,
+void __fastcall TfmMain::Image1MouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift,
           int X, int Y)
 {
     if(m_bMouseDown) {
@@ -710,16 +819,10 @@ void __fastcall TForm1::Image1MouseUp(TObject *Sender, TMouseButton Button, TShi
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TForm1::Image1MouseMove(TObject *Sender, TShiftState Shift, int X, int Y)
+void __fastcall TfmMain::Image1MouseMove(TObject *Sender, TShiftState Shift, int X, int Y)
 {
     if(m_bMouseDown) {
-        m_nPixelMapX = X;
-        m_nPixelMapY = Y;
-
-        m_nPixelMapX = m_nPixelMapX < 0   ? 0   : m_nPixelMapX;
-        m_nPixelMapX = m_nPixelMapX > 240 ? 240 : m_nPixelMapX;
-        m_nPixelMapY = m_nPixelMapY < 0   ? 0   : m_nPixelMapY;
-        m_nPixelMapY = m_nPixelMapY > 240 ? 240 : m_nPixelMapY;
+        SetColor_XYI(X, Y, m_nIntensity);
 
         DisplayUpdatePixelMap(false);
     }
@@ -728,20 +831,54 @@ void __fastcall TForm1::Image1MouseMove(TObject *Sender, TShiftState Shift, int 
 //---------------------------------------------------------------------------
 
 
-void __fastcall TForm1::TrackBar_IntensityChange(TObject *Sender)
+void __fastcall TfmMain::TrackBar_IntensityChange(TObject *Sender)
 {
     m_nIntensity = TrackBar_Intensity->Position;
+
+    SetColor_XYI(m_nPixelMapX, m_nPixelMapY, m_nIntensity);
 
     DisplayUpdatePixelMap(false);
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::SetPixelMapBySelectColor(TColor clSelectColor)
+void __fastcall TfmMain::SetColor_XYI(int nX, int nY, int nI)
+{
+    m_nPixelMapX = nX;
+    m_nPixelMapY = nY;
+    m_nIntensity = nI;
+
+    m_nPixelMapX = m_nPixelMapX < 0   ? 0   : m_nPixelMapX;
+    m_nPixelMapX = m_nPixelMapX > 240 ? 240 : m_nPixelMapX;
+    m_nPixelMapY = m_nPixelMapY < 0   ? 0   : m_nPixelMapY;
+    m_nPixelMapY = m_nPixelMapY > 240 ? 240 : m_nPixelMapY;
+    m_nIntensity = m_nIntensity < 0   ? 0   : m_nIntensity;
+    m_nIntensity = m_nIntensity > 240 ? 240 : m_nIntensity;
+
+    double dR=0, dG=0, dB=0;
+    HSI_to_RGB((double)m_nPixelMapX/240.0, (double)(240-m_nPixelMapY)/240.0, (double)m_nIntensity/240.0, dR, dG, dB);
+    m_nRGB_R = dR;
+    m_nRGB_G = dG;
+    m_nRGB_B = dB;
+
+    if(RadioButton_Type_BG->Checked) {
+        m_nBGColor   = (m_nRGB_B << 16 | m_nRGB_G << 8 | m_nRGB_R);
+    }
+    else {
+        m_nFontColor = (m_nRGB_B << 16 | m_nRGB_G << 8 | m_nRGB_R);
+    }
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TfmMain::SetPixelMapBySelectColor(TColor clSelectColor)
 {
     int RGB = ColorToRGB(clSelectColor);
 
     double dR = GetRValue(RGB);
     double dG = GetGValue(RGB);
     double dB = GetBValue(RGB);
+
+    m_nRGB_R = dR;
+    m_nRGB_G = dG;
+    m_nRGB_B = dB;
 
     double dH=0, dS=0, dI=0;
     RGB_to_HSI(dR, dG, dB, dH, dS, dI);
@@ -750,7 +887,374 @@ void __fastcall TForm1::SetPixelMapBySelectColor(TColor clSelectColor)
     m_nPixelMapY = 240 - dS * 240;
     m_nIntensity = dI * 240;
 
+    if(RadioButton_Type_BG->Checked) {
+        m_nBGColor   = RGB;
+    }
+    else {
+        m_nFontColor = RGB;
+    }
+
     DisplayUpdatePixelMap(true);
 }
 
 //---------------------------------------------------------------------------
+void __fastcall TfmMain::Edit_Pixel_HChange(TObject *Sender)
+{
+    TEdit * pEdit = dynamic_cast<TEdit *>(Sender);
+    if(pEdit == NULL || fmMain->Showing == false) return;
+
+    int nIdx = pEdit->Tag;
+
+    int nH=0, nS=0, nI=0, nR=0, nG=0, nB=0, nHexColor = 0;
+    double dR=0, dG=0, dB=0;
+
+    AnsiString sText =  pEdit->Text;
+    sText = sText.Trim();
+
+    switch(nIdx) {
+        case 1: // H
+        case 2: // S
+        case 3: // I
+            nH = Edit_Pixel_H->Text.ToIntDef(0);
+            nS = Edit_Pixel_S->Text.ToIntDef(0);
+            nI = Edit_Pixel_I->Text.ToIntDef(0);
+
+            SetColor_XYI(nH, nS, nI);
+
+            DisplayUpdatePixelMap(true);
+            break;
+
+        case 4: // R
+        case 5: // G
+        case 6: // B
+            nR = Edit_Pixel_R->Text.ToIntDef(0);
+            nG = Edit_Pixel_G->Text.ToIntDef(0);
+            nB = Edit_Pixel_B->Text.ToIntDef(0);
+
+            nR = nR < 0   ? 0   : nR;
+            nR = nR > 255 ? 255 : nR;
+            nG = nG < 0   ? 0   : nG;
+            nG = nG > 255 ? 255 : nG;
+            nB = nB < 0   ? 0   : nB;
+            nB = nB > 255 ? 255 : nB;
+
+            SetPixelMapBySelectColor((TColor)((nB << 16) | (nG <<8) | nR));
+            break;
+
+        case 7: // Hex Color Code
+            nHexColor = Edit_CodeColor->Text.ToIntDef(0);
+            SetPixelMapBySelectColor((TColor)nHexColor);
+            break;
+
+        case 8: // Delphi Color Code
+            break;
+
+    }
+
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TfmMain::Button_AddCart_1Click(TObject *Sender)
+{
+    TSpeedButton * pBtn = dynamic_cast<TSpeedButton *>(Sender);
+    if(pBtn == NULL) return;
+
+    int nIdx = pBtn->Tag;
+    int RGB = 0;
+
+    switch(nIdx) {
+        case 1: // Named Color
+            m_nCartIndex += 1;
+            if(m_nCartIndex >= StringGrid_Cart->RowCount) StringGrid_Cart->RowCount += 1;
+            StringGrid_Cart->Cells[3][m_nCartIndex] = "0x" + IntToHex(m_ColorIndex[nSelectColorIndex], 8);
+            StringGrid_Cart->Cells[2][m_nCartIndex] = StringGrid1->Cells[1][nSelectColorIndex+1];
+            StringGrid_Cart->Cells[1][m_nCartIndex] = "";
+            StringGrid_Cart->Cells[0][m_nCartIndex] = m_nCartIndex;
+            break;
+
+        case 2: // Pixel Palette
+            m_nCartIndex += 1;
+            if(m_nCartIndex >= StringGrid_Cart->RowCount) StringGrid_Cart->RowCount += 1;
+            RGB = m_nRGB_B << 16 | m_nRGB_G << 8 | m_nRGB_R;
+            StringGrid_Cart->Cells[3][m_nCartIndex] = "0x" + IntToHex(RGB, 8);
+            StringGrid_Cart->Cells[2][m_nCartIndex] = "";
+            StringGrid_Cart->Cells[1][m_nCartIndex] = "";
+            StringGrid_Cart->Cells[0][m_nCartIndex] = m_nCartIndex;
+            break;
+    }
+
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TfmMain::StringGrid_CartDrawCell(TObject *Sender, int ACol, int ARow,
+          TRect &Rect, TGridDrawState State)
+{
+    TCanvas * pCanvas = StringGrid_Cart->Canvas;
+
+    Rect.Left -= 4;
+
+    if(State.Contains(gdFixed) || (ARow == 0) || (ACol == 0)) {
+        pCanvas->Brush->Color = clBtnFace;
+        pCanvas->Font->Color = clWindowText;
+        pCanvas->FillRect(Rect);
+        Frame3D(pCanvas, Rect, clBtnHighlight, clBtnShadow, 1);
+        pCanvas->TextRect(Rect, Rect.Left+2, Rect.Top + 3, StringGrid_Cart->Cells[ACol][ARow]);
+    }
+    else if(ACol==3){
+        AnsiString sColor = StringGrid_Cart->Cells[ACol][ARow];
+        int nColor = sColor.ToIntDef(0x00FFFFFF);
+
+        // 명도 값으로 폰트 색상을 정한다.
+        double dR = GetRValue(nColor);
+        double dG = GetGValue(nColor);
+        double dB = GetBValue(nColor);
+        double dH=0, dS=0, dI=0;
+        RGB_to_HSI(dR, dG, dB, dH, dS, dI);
+        pCanvas->Font->Color = (dI * 240) > 140 ? clBlack : clWhite;
+
+        pCanvas->Brush->Color = (TColor)nColor;
+        pCanvas->FillRect(Rect);
+        pCanvas->TextRect(Rect, Rect.Left+4, Rect.Top+4, sColor);
+
+    }
+
+    pCanvas->Brush->Color = clWhite;
+    pCanvas->Font->Color  = clBlack;
+}
+//---------------------------------------------------------------------------
+
+
+
+void __fastcall TfmMain::StringGrid_CartMouseUp(TObject *Sender, TMouseButton Button,
+          TShiftState Shift, int X, int Y)
+{
+//    if(Button == mbRight) {
+//
+//        SelectRow(RowByPoint(X, Y));
+//        PopupMenu_Cart->Popup(X + StringGrid_Cart->Left + Panel3->Left + this->Left,
+//                              Y+StringGrid_Cart->Top + this->Top);
+//    }
+
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TfmMain::DeleteItem1Click(TObject *Sender)
+{
+    int nIdx = StringGrid_Cart->Selection.Top;
+
+    for(int row=nIdx+1; row< StringGrid_Cart->RowCount; row++) {
+        for(int col=0; col<StringGrid_Cart->ColCount; col++) {
+            StringGrid_Cart->Cells[col][row-1] = StringGrid_Cart->Cells[col][row];
+        }
+    }
+
+    for(int col=0; col<StringGrid_Cart->ColCount; col++) {
+        StringGrid_Cart->Cells[col][StringGrid_Cart->RowCount-1] = "";
+    }
+
+    if(StringGrid_Cart->RowCount > 2) {
+        StringGrid_Cart->RowCount -= 1;
+    }
+
+    m_nCartIndex -= 1;
+    m_nCartIndex = m_nCartIndex < 0 ? 0 : m_nCartIndex;
+
+    for(int row=1; row<StringGrid_Cart->RowCount; row++) {
+        StringGrid_Cart->Cells[0][row] = row;
+    }
+
+}
+//---------------------------------------------------------------------------
+void __fastcall TfmMain::DeleteAll1Click(TObject *Sender)
+{
+    StringGrid_Cart->RowCount = 2;
+    for(int col=0; col<StringGrid_Cart->ColCount; col++) {
+        StringGrid_Cart->Cells[col][1] = "";
+    }
+
+    m_nCartIndex = 0;
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TfmMain::Copy1Click(TObject *Sender)
+{
+    int row = StringGrid_Cart->Selection.Top;
+    int col = StringGrid_Cart->Selection.Left;
+
+    TClipboard * pCB = Clipboard();
+    pCB->Open();
+    pCB->SetTextBuf(StringGrid_Cart->Cells[col][row].w_str());
+    pCB->Close();
+}
+//---------------------------------------------------------------------------
+
+
+
+void __fastcall TfmMain::StringGrid_CartClick(TObject *Sender)
+{
+//    int row = StringGrid_Cart->Selection.Top;
+//    int col = StringGrid_Cart->Selection.Left;
+//
+//    TClipboard * pCB = Clipboard();
+//    pCB->Open();
+//    pCB->SetTextBuf(StringGrid_Cart->Cells[col][row].w_str());
+//    pCB->Close();
+
+}
+//---------------------------------------------------------------------------
+
+
+
+void __fastcall TfmMain::RadioButton_Type_BGClick(TObject *Sender)
+{
+    TRadioButton * pBtn = dynamic_cast<TRadioButton *>(Sender);
+    if(pBtn == NULL) return;
+
+    if(pBtn->Tag == 0) {
+        // Back Ground
+        SetPixelMapBySelectColor(Panel_SelectPixelColor->Color);
+    }
+    else {
+        // Font
+        SetPixelMapBySelectColor(Panel_SelectPixelColor->Font->Color);
+    }
+
+}
+//---------------------------------------------------------------------------
+void __fastcall TfmMain::Load(MFileManager * pFileMng)
+{
+    if(pFileMng == NULL) return;
+
+    AnsiString sKey;
+
+    pFileMng->GetValuePlus("LAST WORK INFO", "m_nPixelMapX", &m_nPixelMapX, m_nPixelMapX);
+    pFileMng->GetValuePlus("LAST WORK INFO", "m_nPixelMapY", &m_nPixelMapY, m_nPixelMapY);
+    pFileMng->GetValuePlus("LAST WORK INFO", "m_nIntensity", &m_nIntensity, m_nIntensity);
+
+    pFileMng->GetValuePlus("LAST WORK INFO", "m_nRGB_R", &m_nRGB_R, m_nRGB_R);
+    pFileMng->GetValuePlus("LAST WORK INFO", "m_nRGB_G", &m_nRGB_G, m_nRGB_G);
+    pFileMng->GetValuePlus("LAST WORK INFO", "m_nRGB_B", &m_nRGB_B, m_nRGB_B);
+
+    pFileMng->GetValuePlus("LAST WORK INFO", "m_nBGColor",   &m_nBGColor,   m_nBGColor);
+    pFileMng->GetValuePlus("LAST WORK INFO", "m_nFontColor", &m_nFontColor, m_nFontColor);
+
+    pFileMng->GetValuePlus("LAST WORK INFO", "m_nCartIndex", &m_nCartIndex, m_nCartIndex);
+    pFileMng->GetValuePlus("LAST WORK INFO", "nSelectColorIndex", &nSelectColorIndex, nSelectColorIndex);
+
+    StringGrid_Cart->RowCount = m_nCartIndex + 1;
+    for(int i=0; i<m_nCartIndex; i++) {
+        sKey.printf("Cart_%03d", i);
+        AnsiString sTemp[3];
+        pFileMng->Get1xArrayValuePlus("COLOR CART", sKey, 3, sTemp);
+
+        StringGrid_Cart->Cells[0][i+1] = i+1;
+        StringGrid_Cart->Cells[1][i+1] = sTemp[0];
+        StringGrid_Cart->Cells[2][i+1] = sTemp[1];
+        StringGrid_Cart->Cells[3][i+1] = sTemp[2];
+    }
+
+}
+
+//---------------------------------------------------------------------------
+void __fastcall TfmMain::Save(MFileManager * pFileMng)
+{
+    if(pFileMng == NULL) return;
+
+    AnsiString sKey;
+
+    pFileMng->SetValuePlus("LAST WORK INFO", "m_nPixelMapX",m_nPixelMapX);
+    pFileMng->SetValuePlus("LAST WORK INFO", "m_nPixelMapY",m_nPixelMapY);
+    pFileMng->SetValuePlus("LAST WORK INFO", "m_nIntensity",m_nIntensity);
+
+    pFileMng->SetValuePlus("LAST WORK INFO", "m_nRGB_R", m_nRGB_R);
+    pFileMng->SetValuePlus("LAST WORK INFO", "m_nRGB_G", m_nRGB_G);
+    pFileMng->SetValuePlus("LAST WORK INFO", "m_nRGB_B", m_nRGB_B);
+
+    pFileMng->SetValuePlus("LAST WORK INFO", "m_nBGColor",   m_nBGColor);
+    pFileMng->SetValuePlus("LAST WORK INFO", "m_nFontColor", m_nFontColor);
+
+    pFileMng->SetValuePlus("LAST WORK INFO", "m_nCartIndex", m_nCartIndex);
+    pFileMng->SetValuePlus("LAST WORK INFO", "nSelectColorIndex", nSelectColorIndex);
+
+
+    AnsiString sTemp[3];
+    for(int i=0; i<m_nCartIndex; i++) {
+        sKey.printf("Cart_%03d", i);
+        sTemp[0] = StringGrid_Cart->Cells[1][i+1];
+        sTemp[1] = StringGrid_Cart->Cells[2][i+1];
+        sTemp[2] = StringGrid_Cart->Cells[3][i+1];
+
+        pFileMng->Set1xArrayValuePlus("COLOR CART", sKey, 3, sTemp);
+    }
+}
+
+//---------------------------------------------------------------------------
+void __fastcall TfmMain::FormCreate(TObject *Sender)
+{
+    Load(m_pFileManager);
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TfmMain::FormClose(TObject *Sender, TCloseAction &Action)
+{
+    Save(m_pFileManager);
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TfmMain::Open1Click(TObject *Sender)
+{
+    AnsiString sPath = ExtractFilePath(Application->ExeName);
+    OpenTextFileDialog1->InitialDir = sPath;
+    OpenTextFileDialog1->Filter = "Config files (*.ini)|*.ini|All File (*.*)";
+
+    if(OpenTextFileDialog1->Execute()) {
+        AnsiString sFullName = OpenTextFileDialog1->FileName;
+        AnsiString sPath     = ExtractFilePath(sFullName);
+        AnsiString sFile     = ExtractFileName(sFullName);
+
+        if(FileExists(sFullName)) {
+            if(m_pFileManager) delete m_pFileManager;
+            m_pFileManager = new MFileManager(sFile, sPath);
+
+            Load(m_pFileManager);
+
+            DisplayUpdatePixelMap(true);
+            DisplayUpdate();
+        }
+    }
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TfmMain::Save1Click(TObject *Sender)
+{
+    Save(m_pFileManager);
+}
+//---------------------------------------------------------------------------
+void __fastcall TfmMain::SaveAs1Click(TObject *Sender)
+{
+    AnsiString sPath = m_pFileManager->GetPath();
+    SaveTextFileDialog1->InitialDir = sPath;
+    SaveTextFileDialog1->Filter = "Config files (*.ini)|*.ini|All File (*.*)";
+
+    if(SaveTextFileDialog1->Execute()) {
+        AnsiString sFullName = SaveTextFileDialog1->FileName;
+        AnsiString sPath     = ExtractFilePath(sFullName);
+        AnsiString sFile     = ExtractFileName(sFullName);
+
+        if(m_pFileManager) delete m_pFileManager;
+        m_pFileManager = new MFileManager(sFile, sPath);
+
+        Save(m_pFileManager);
+
+        DisplayUpdate();
+    }
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TfmMain::Exit1Click(TObject *Sender)
+{
+    Close();
+}
+//---------------------------------------------------------------------------
+
+
