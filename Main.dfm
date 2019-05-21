@@ -17,6 +17,7 @@ object fmMain: TfmMain
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnPaint = FormPaint
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -34,7 +35,6 @@ object fmMain: TfmMain
     OnClick = StringGrid1Click
     OnDrawCell = StringGrid1DrawCell
     OnSelectCell = StringGrid1SelectCell
-    ExplicitHeight = 581
     ColWidths = (
       50
       178
@@ -54,7 +54,6 @@ object fmMain: TfmMain
     ParentBackground = False
     ShowCaption = False
     TabOrder = 1
-    ExplicitHeight = 581
     object AZFlowShape_Color: TAZFlowShape
       Left = 0
       Top = 0
@@ -95,8 +94,6 @@ object fmMain: TfmMain
       Caption = 'Panel2'
       ShowCaption = False
       TabOrder = 0
-      ExplicitTop = 444
-      ExplicitWidth = 344
       object Panel8: TPanel
         Left = 0
         Top = 0
@@ -107,10 +104,6 @@ object fmMain: TfmMain
         Caption = 'Panel8'
         ShowCaption = False
         TabOrder = 0
-        ExplicitLeft = 24
-        ExplicitTop = -11
-        ExplicitWidth = 193
-        ExplicitHeight = 103
         object Label_ColorType: TLabel
           AlignWithMargins = True
           Left = 3
@@ -119,8 +112,6 @@ object fmMain: TfmMain
           Height = 13
           Align = alTop
           Caption = 'Color Type '
-          ExplicitLeft = 9
-          ExplicitTop = 80
           ExplicitWidth = 55
         end
         object Label1: TLabel
@@ -146,7 +137,6 @@ object fmMain: TfmMain
           ParentBackground = False
           ShowCaption = False
           TabOrder = 0
-          ExplicitWidth = 210
         end
         object Edit_Color: TEdit
           Tag = 1
@@ -160,9 +150,6 @@ object fmMain: TfmMain
           TabOrder = 1
           Text = 'Edit_Color'
           OnKeyPress = Edit_ColorKeyPress
-          ExplicitLeft = 8
-          ExplicitTop = 53
-          ExplicitWidth = 185
         end
       end
       object Panel9: TPanel
@@ -464,8 +451,6 @@ object fmMain: TfmMain
           Caption = 'Copy'
           TabOrder = 0
           OnClick = Button_CopyClick
-          ExplicitTop = 51
-          ExplicitWidth = 84
         end
       end
     end
@@ -481,7 +466,6 @@ object fmMain: TfmMain
     Caption = 'Panel3'
     ShowCaption = False
     TabOrder = 2
-    ExplicitHeight = 581
     object Panel5: TPanel
       Left = 0
       Top = 0
@@ -489,11 +473,13 @@ object fmMain: TfmMain
       Height = 389
       Align = alTop
       BevelOuter = bvNone
+      BiDiMode = bdLeftToRight
       Caption = 'Panel5'
+      DoubleBuffered = True
+      ParentBiDiMode = False
+      ParentBackground = False
+      ParentDoubleBuffered = False
       TabOrder = 0
-      ExplicitLeft = 3
-      ExplicitTop = 12
-      ExplicitWidth = 307
       object Label_Pixel_Y: TLabel
         Left = 55
         Top = 258
@@ -842,10 +828,15 @@ object fmMain: TfmMain
         Top = 3
         Width = 41
         Height = 254
+        Ctl3D = True
         Max = 240
         Orientation = trVertical
+        ParentCtl3D = False
+        ParentShowHint = False
         Position = 240
+        ShowHint = False
         TabOrder = 0
+        TickStyle = tsNone
         OnChange = TrackBar_IntensityChange
       end
       object Edit_Pixel_H: TEdit
@@ -1010,7 +1001,6 @@ object fmMain: TfmMain
           Caption = 'Panel7'
           ShowCaption = False
           TabOrder = 1
-          ExplicitWidth = 95
           object RadioButton_Type_BG: TRadioButton
             AlignWithMargins = True
             Left = 3
@@ -1035,8 +1025,6 @@ object fmMain: TfmMain
             Caption = 'Font'
             TabOrder = 1
             OnClick = RadioButton_Type_BGClick
-            ExplicitLeft = 43
-            ExplicitTop = 4
           end
         end
       end
@@ -1057,8 +1045,6 @@ object fmMain: TfmMain
       OnClick = StringGrid_CartClick
       OnDrawCell = StringGrid_CartDrawCell
       OnMouseUp = StringGrid_CartMouseUp
-      ExplicitWidth = 339
-      ExplicitHeight = 192
       ColWidths = (
         30
         110
@@ -1080,9 +1066,6 @@ object fmMain: TfmMain
       item
         Width = 50
       end>
-    ExplicitLeft = 208
-    ExplicitTop = 176
-    ExplicitWidth = 0
   end
   object PopupMenu_Cart: TPopupMenu
     Left = 736

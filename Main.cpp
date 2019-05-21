@@ -59,7 +59,7 @@ __fastcall TfmMain::TfmMain(TComponent* Owner)
     m_pIntensityPixelMap->Height = 240;
     //----------------------------------
 
-    Image_Intensity->ControlStyle = Image_Intensity->ControlStyle << csOpaque;
+    //Image_Intensity->ControlStyle = Image_Intensity->ControlStyle << csOpaque;
 
 
     HSI_to_RGB(0, 0, 1, dR, dG, dB);
@@ -514,9 +514,9 @@ void __fastcall TfmMain::FormShow(TObject *Sender)
     Image_Intensity->Picture->Bitmap->Height = 240;
 
     StringGrid_Cart->Cells[0][0] = "No.";
-    StringGrid_Cart->Cells[1][0] = "Title";
-    StringGrid_Cart->Cells[2][0] = "Name";
-    StringGrid_Cart->Cells[3][0] = "Value";
+    StringGrid_Cart->Cells[1][0] = "Memo";
+    StringGrid_Cart->Cells[2][0] = "Color Name";
+    StringGrid_Cart->Cells[3][0] = "Color Value";
 
     for(int row=1; row<StringGrid_Cart->RowCount; row++) {
         StringGrid_Cart->Cells[0][row] = row;
@@ -677,6 +677,7 @@ void __fastcall TfmMain::DisplayUpdatePixelMap(bool bFirst)
     //m_pIntensityPixelMap->Canvas->Rectangle(0,0,m_pIntensityPixelMap->Width, m_pIntensityPixelMap->Height);
     Image_Intensity->Picture->Bitmap->Assign(m_pIntensityPixelMap);
 
+
     // 커서 그리기
     TCanvas * pCanvas = Image1->Picture->Bitmap->Canvas;
 
@@ -757,6 +758,8 @@ void __fastcall TfmMain::DisplayUpdatePixelMap(bool bFirst)
     Edit_Pixel_B->OnChange   = Edit_Pixel_HChange;
     Edit_CodeColor->OnChange = Edit_Pixel_HChange;
     Edit_CodeColor2->OnChange =Edit_Pixel_HChange;
+
+
 }
 //---------------------------------------------------------------------------
 void __fastcall TfmMain::StringGrid1SelectCell(TObject *Sender, int ACol, int ARow,
@@ -1257,4 +1260,34 @@ void __fastcall TfmMain::Exit1Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
+
+void __fastcall TfmMain::FormPaint(TObject *Sender)
+{
+    static int count = 0;
+    count += 1;
+    Caption += count;
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TfmMain::WndProc(TMessage &M)
+{
+    switch (M.Msg)
+    {
+        case WM_CREATE:
+            TForm::WndProc(M);
+            break;
+
+        case WM_PAINT:
+            TForm::WndProc(M);
+            break;
+
+        case WM_ERASEBKGND:
+            TForm::WndProc(M);
+            break;
+
+        default:
+            TForm::WndProc(M);
+            break;
+    }
+}
 

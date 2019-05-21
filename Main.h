@@ -110,7 +110,8 @@ __published:	// IDE-managed Components
     void __fastcall Save1Click(TObject *Sender);
     void __fastcall Exit1Click(TObject *Sender);
     void __fastcall SaveAs1Click(TObject *Sender);
-
+    void __fastcall FormPaint(TObject *Sender);
+    void __fastcall WndProc(TMessage &M);
 
 
 private:	// User declarations
