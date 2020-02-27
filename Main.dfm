@@ -818,15 +818,15 @@ object fmMain: TfmMain
         OnClick = Button_AddCart_1Click
       end
       object Image_Intensity: TImage
-        Left = 267
+        Left = 283
         Top = 10
         Width = 10
         Height = 240
       end
       object TrackBar_Intensity: TTrackBar
-        Left = 277
+        Left = 262
         Top = 3
-        Width = 41
+        Width = 20
         Height = 254
         Ctl3D = True
         Max = 240
@@ -845,6 +845,7 @@ object fmMain: TfmMain
         Top = 255
         Width = 40
         Height = 21
+        Alignment = taRightJustify
         TabOrder = 1
         Text = '0'
         OnChange = Edit_Pixel_HChange
@@ -855,6 +856,7 @@ object fmMain: TfmMain
         Top = 277
         Width = 40
         Height = 21
+        Alignment = taRightJustify
         TabOrder = 2
         Text = '0'
         OnChange = Edit_Pixel_HChange
@@ -865,6 +867,7 @@ object fmMain: TfmMain
         Top = 299
         Width = 40
         Height = 21
+        Alignment = taRightJustify
         TabOrder = 3
         Text = '0'
         OnChange = Edit_Pixel_HChange
@@ -875,6 +878,14 @@ object fmMain: TfmMain
         Top = 255
         Width = 40
         Height = 21
+        Alignment = taRightJustify
+        Color = clRed
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWhite
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
         TabOrder = 4
         Text = '0'
         OnChange = Edit_Pixel_HChange
@@ -885,6 +896,14 @@ object fmMain: TfmMain
         Top = 277
         Width = 40
         Height = 21
+        Alignment = taRightJustify
+        Color = clGreen
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWhite
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
         TabOrder = 5
         Text = '0'
         OnChange = Edit_Pixel_HChange
@@ -895,6 +914,14 @@ object fmMain: TfmMain
         Top = 299
         Width = 40
         Height = 21
+        Alignment = taRightJustify
+        Color = clBlue
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWhite
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
         TabOrder = 6
         Text = '0'
         OnChange = Edit_Pixel_HChange
@@ -905,6 +932,7 @@ object fmMain: TfmMain
         Top = 327
         Width = 66
         Height = 21
+        Alignment = taCenter
         TabOrder = 7
         Text = '0'
         OnChange = Edit_Pixel_HChange
@@ -915,6 +943,7 @@ object fmMain: TfmMain
         Top = 353
         Width = 66
         Height = 21
+        Alignment = taCenter
         TabOrder = 8
         Text = '0'
         OnChange = Edit_Pixel_HChange

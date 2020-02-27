@@ -13,6 +13,8 @@
 #include "Main.h"
 #include "rgb_hsi.h"
 
+#define MAKE_RGB(R,G,B) ((B)<<16 | (G)<<8 | (R))
+
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma link "AZFlowShape"
@@ -736,9 +738,15 @@ void __fastcall TfmMain::DisplayUpdatePixelMap(bool bFirst)
     Edit_Pixel_S->Text = 240-m_nPixelMapY;
     Edit_Pixel_I->Text = m_nIntensity;
 
-    Edit_Pixel_R->Text = (int)m_nRGB_R;
-    Edit_Pixel_G->Text = (int)m_nRGB_G;
-    Edit_Pixel_B->Text = (int)m_nRGB_B;
+    Edit_Pixel_R->Text = m_nRGB_R;
+    Edit_Pixel_G->Text = m_nRGB_G;
+    Edit_Pixel_B->Text = m_nRGB_B;
+
+    Edit_Pixel_R->Color = (TColor)MAKE_RGB(m_nRGB_R, 0, 0);
+    Edit_Pixel_G->Color = (TColor)MAKE_RGB(0, m_nRGB_G, 0);
+    Edit_Pixel_B->Color = (TColor)MAKE_RGB(0, 0, m_nRGB_B);
+
+
 
     AnsiString sMsg;
 
